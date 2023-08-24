@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:302057524914:android:cf9e9449a4b7f0d20b03ab",
+        "mobilesdk_app_id": "1:302057524914:android:0ff51ca7bb0b36e60b03ab",
         "android_client_info": {
           "package_name": "com.vishesh.flash_chat"
         }
@@ -29,6 +29,13 @@
             {
               "client_id": "302057524914-65ta8d4l0fff0u511ihgus2tpdbc0fv9.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "302057524914-9vifh0df45hgrjlbntpd1858u1pm6s44.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flash.RunnerTests"
+              }
             }
           ]
         }
