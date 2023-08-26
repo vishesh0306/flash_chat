@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 final _fireStore = FirebaseFirestore.instance;
 late User loggedInUser;
 
+
 class ChatScreen extends StatefulWidget {
   static String id = 'chat_screen';
   @override
@@ -14,10 +15,8 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
 
-
   final messageTextController = TextEditingController();
   final _auth = FirebaseAuth.instance;
-
   late String messageText;
 
   @override
@@ -53,9 +52,11 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
     backgroundColor: Colors.white,
       appBar: AppBar(
         leading: null,
@@ -98,17 +99,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      messageTextController.clear();
-                      _fireStore.collection('messages').add({
-                        'text': messageText,
-                        'sender' : loggedInUser.email
-                      });
-                    },
                     child: Text(
                       'Send',
                       style: kSendButtonTextStyle,
                     ),
+
+                    onPressed: () {
+                      messageTextController.clear();
+                      _fireStore.collection('messages').add({
+                        'text': messageText,
+                        'sender' : loggedInUser.email,
+                        'time': DateTime.now()
+                        // FieldValue.serverTimestamp()
+                      });
+                    },
                   ),
                 ],
               ),
@@ -128,7 +132,8 @@ class messageStream extends StatelessWidget {
   late bool isMe;
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-        stream: _fireStore.collection("messages").snapshots(),
+        stream: _fireStore.collection('messages').orderBy('time', descending: false).snapshots(),
+        // _fireStore.collection("messages").snapshots(),
         builder: (context,snapshot){
           if(!snapshot.hasData){
             return Center(
@@ -136,12 +141,19 @@ class messageStream extends StatelessWidget {
               backgroundColor: Colors.lightBlueAccent,
             ),);
           }
-          final messages = snapshot.data!.docs.reversed;
+
+          final messages = snapshot.data!.docs;
+              // snapshot.data!.docs.reversed;
+
           List<MessageBubble> messageBubbles = [];
+
           for(var message in messages){
             final messageText = message.get('text');
             final messageSender = message.get('sender');
+            final messageTime = message.get('time');
+
             final currentUser = loggedInUser.email;
+
             if(currentUser == messageSender){
                   isMe = true;
             }
@@ -149,10 +161,11 @@ class messageStream extends StatelessWidget {
               isMe = false;
             }
 
-            final messageBubble = MessageBubble(messageText, messageSender, isMe);
-            messageBubbles..add(messageBubble);
-            print(messageText);
-
+            final messageBubble = MessageBubble(messageText, messageSender, isMe,messageTime,);
+            messageBubbles.add(messageBubble);
+            messageBubbles.sort((a , b ) => b.time.compareTo(a.time));
+            // print(messageText);
+            // print(messageBubbles.);
           }
 
           return Expanded(
@@ -171,10 +184,11 @@ class messageStream extends StatelessWidget {
 
 class MessageBubble extends StatelessWidget {
 
-  MessageBubble(this.text,this.sender,this.isMe);
+  MessageBubble(this.text,this.sender,this.isMe,this.time);
   late final String text;
   late final String sender;
   late bool isMe;
+  final Timestamp time;
 
   @override
   Widget build(BuildContext context) {
@@ -184,10 +198,17 @@ class MessageBubble extends StatelessWidget {
       child: Column(
         crossAxisAlignment: isMe? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: <Widget>[
-          Text((sender),style: TextStyle(
-            fontSize: 10,
+          Text((sender),
+            style: TextStyle(
+              fontSize: 10,
               color: Colors.blueGrey
           ),),
+
+          // Text(
+          //   ' $sender ${DateTime.fromMillisecondsSinceEpoch(time.seconds * 1000)}',// add this only if you want to show the time along with the email. If you dont want this then don't add this DateTime thing
+          //   style: TextStyle(color: Colors.black54, fontSize: 12),
+          // ),
+
           Material(
           elevation: 5,
           borderRadius: BorderRadius.only(
